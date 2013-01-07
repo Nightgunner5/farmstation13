@@ -150,6 +150,29 @@ const Interface = `<!DOCTYPE html>
 <html>
 <head>
 	<title>Farm Station 13</title>
+	<style>
+#harvested {
+	position: absolute;
+	right: 8px;
+	top: 8px;
+}
+.plantName {
+	display: inline-block;
+	width: 100px;
+}
+.no-water {
+	background-color: #f77;
+}
+.low-water {
+	background-color: #ff7;
+}
+.good-water {
+	background-color: #7f7;
+}
+.drown-water {
+	background-color: #77f;
+}
+	</style>
 </head>
 <body>
 	<script>
@@ -195,6 +218,7 @@ function planter(i, name, health, data) {
 	p.appendChild(n);
 
 	n = document.createElement('strong');
+	n.className = 'plantName';
 	n.innerText = name;
 	p.appendChild(n);
 
@@ -218,7 +242,11 @@ function planter(i, name, health, data) {
 
 	if (contents.length == 0) contents.push('Nothing');
 
-	n = document.createTextNode(solution + ' units of ' + contents.join(', '));
+	n = document.createElement('span');
+	n.innerText = solution + ' units of ' + contents.join(', ');
+	n.className = data.Water > 200 ? 'drown-water' :
+		data.Water > 75 ? 'good-water' :
+		data.Water > 0 ? 'low-water' : 'no-water';
 	p.appendChild(n);
 
 	if (health > 50) {
@@ -276,9 +304,6 @@ function harvested(crop, amount) {
 	var harvested = document.getElementById('harvested');
 	if (!harvested) {
 		harvested = document.createElement('div');
-		harvested.style.position = 'absolute';
-		harvested.style.top = '8px';
-		harvested.style.right = '8px';
 		harvested.id = 'harvested';
 		document.body.appendChild(harvested);
 	}
@@ -317,7 +342,7 @@ setInterval(function() {
 			if (p.Name) {
 				planter(i, p.Name, p.Health, p);
 			} else {
-				planter(i, 'Empty', -1, p);
+				planter(i, '', -1, p);
 			}
 		});
 		var h = [];

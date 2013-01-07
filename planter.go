@@ -103,7 +103,20 @@ func (p *Planter) Tick() {
 		return
 	}
 
-	moveTowards(&p.Solution.Water, 0, 5)
+	switch p.Crop.Time {
+	default:
+		fallthrough
+	case VeryFast:
+		moveTowards(&p.Solution.Water, 0, 30)
+	case Fast:
+		moveTowards(&p.Solution.Water, 0, 20)
+	case Average:
+		moveTowards(&p.Solution.Water, 0, 5)
+	case Slow:
+		moveTowards(&p.Solution.Water, 0, 2)
+	case VerySlow:
+		moveTowards(&p.Solution.Water, 0, 1)
+	}
 	moveTowards(&p.Solution.Compost, 0, 5)
 	moveTowards(&p.Solution.ToxicSlurry, 0, 5)
 	moveTowards(&p.Solution.Mutriant, 0, 5)

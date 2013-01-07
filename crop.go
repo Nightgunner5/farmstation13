@@ -13,7 +13,7 @@ const (
 type Time uint16
 
 const (
-	VeryFast Time = 1 << (iota*2 + 3)
+	VeryFast Time = 1 << (iota + 4)
 	Fast
 	Average
 	Slow
