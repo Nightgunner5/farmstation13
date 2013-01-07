@@ -9,8 +9,8 @@ import (
 )
 
 func main() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/" {
+	http.HandleFunc("/botany/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/botany/" {
 			http.NotFound(w, r)
 			return
 		}
@@ -18,8 +18,8 @@ func main() {
 		io.WriteString(w, Interface)
 	})
 
-	http.HandleFunc("/use/drain/", func(w http.ResponseWriter, r *http.Request) {
-		i, err := strconv.ParseInt(r.URL.Path[len("/use/drain/"):], 10, 64)
+	http.HandleFunc("/botany/use/drain/", func(w http.ResponseWriter, r *http.Request) {
+		i, err := strconv.ParseInt(r.URL.Path[len("/botany/use/drain/"):], 10, 64)
 		if err != nil {
 			http.NotFound(w, r)
 			return
@@ -34,8 +34,8 @@ func main() {
 		}
 	})
 
-	http.HandleFunc("/use/chainsaw/", func(w http.ResponseWriter, r *http.Request) {
-		i, err := strconv.ParseInt(r.URL.Path[len("/use/chainsaw/"):], 10, 64)
+	http.HandleFunc("/botany/use/chainsaw/", func(w http.ResponseWriter, r *http.Request) {
+		i, err := strconv.ParseInt(r.URL.Path[len("/botany/use/chainsaw/"):], 10, 64)
 		if err != nil {
 			http.NotFound(w, r)
 			return
@@ -53,8 +53,8 @@ func main() {
 		}
 	})
 
-	http.HandleFunc("/use/water/", func(w http.ResponseWriter, r *http.Request) {
-		i, err := strconv.ParseInt(r.URL.Path[len("/use/water/"):], 10, 64)
+	http.HandleFunc("/botany/use/water/", func(w http.ResponseWriter, r *http.Request) {
+		i, err := strconv.ParseInt(r.URL.Path[len("/botany/use/water/"):], 10, 64)
 		if err != nil {
 			http.NotFound(w, r)
 			return
@@ -69,8 +69,8 @@ func main() {
 		}
 	})
 
-	http.HandleFunc("/use/compost/", func(w http.ResponseWriter, r *http.Request) {
-		i, err := strconv.ParseInt(r.URL.Path[len("/use/compost/"):], 10, 64)
+	http.HandleFunc("/botany/use/compost/", func(w http.ResponseWriter, r *http.Request) {
+		i, err := strconv.ParseInt(r.URL.Path[len("/botany/use/compost/"):], 10, 64)
 		if err != nil {
 			http.NotFound(w, r)
 			return
@@ -86,8 +86,8 @@ func main() {
 		}
 	})
 
-	http.HandleFunc("/harvest/", func(w http.ResponseWriter, r *http.Request) {
-		i, err := strconv.ParseInt(r.URL.Path[len("/harvest/"):], 10, 64)
+	http.HandleFunc("/botany/harvest/", func(w http.ResponseWriter, r *http.Request) {
+		i, err := strconv.ParseInt(r.URL.Path[len("/botany/harvest/"):], 10, 64)
 		if err != nil {
 			http.NotFound(w, r)
 			return
@@ -108,8 +108,8 @@ func main() {
 		}
 	})
 
-	http.HandleFunc("/state", func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/state" {
+	http.HandleFunc("/botany/state", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/botany/state" {
 			http.NotFound(w, r)
 			return
 		}
@@ -137,7 +137,7 @@ function planter(i, name, health, data) {
 	p.appendChild(n);
 
 	n = document.createElement('a');
-	n.href = '/use/drain/' + i;
+	n.href = '/botany/use/drain/' + i;
 	n.title = 'Drain';
 	n.innerText = 'D';
 	p.appendChild(n);
@@ -146,7 +146,7 @@ function planter(i, name, health, data) {
 	p.appendChild(n);
 
 	n = document.createElement('a');
-	n.href = '/use/chainsaw/' + i;
+	n.href = '/botany/use/chainsaw/' + i;
 	n.title = 'Chainsaw';
 	n.innerText = 'X';
 	p.appendChild(n);
@@ -155,7 +155,7 @@ function planter(i, name, health, data) {
 	p.appendChild(n);
 
 	n = document.createElement('a');
-	n.href = '/use/water/' + i;
+	n.href = '/botany/use/water/' + i;
 	n.title = 'Water';
 	n.innerText = 'W';
 	p.appendChild(n);
@@ -164,7 +164,7 @@ function planter(i, name, health, data) {
 	p.appendChild(n);
 
 	n = document.createElement('a');
-	n.href = '/use/compost/' + i;
+	n.href = '/botany/use/compost/' + i;
 	n.title = 'Compost';
 	n.innerText = 'C';
 	p.appendChild(n);
@@ -203,14 +203,20 @@ function planter(i, name, health, data) {
 		n = document.createTextNode(' (Healthy)');
 		p.appendChild(n);
 	} else if (health > 0) {
-		n = document.createTextNode(' (Unhealthy)');
+		if (data.Dehydration > 50) {
+			n = document.createTextNode(' (Unhealthy - Dehydrating)');
+		} else if (data.Dehydration < -50) {
+			n = document.createTextNode(' (Unhealthy - Drowning)');
+		} else {
+			n = document.createTextNode(' (Unhealthy)');
+		}
 		p.appendChild(n);
 	} else if (health == 0) {
 		n = document.createTextNode(' (');
 		p.appendChild(n);
 
 		n = document.createElement('a');
-		n.href = '/harvest/' + i;
+		n.href = '/botany/harvest/' + i;
 		n.innerText = 'Dead';
 		p.appendChild(n);
 
@@ -228,7 +234,7 @@ function planter(i, name, health, data) {
 				p.appendChild(n);
 
 				n = document.createElement('a');
-				n.href = '/harvest/' + i;
+				n.href = '/botany/harvest/' + i;
 				n.innerText = 'Harvestable';
 				p.appendChild(n);
 
@@ -267,7 +273,7 @@ function harvested(crop, amount) {
 
 setInterval(function() {
 	var xhr = new XMLHttpRequest();
-	xhr.open('get', '/state', true);
+	xhr.open('get', '/botany/state', true);
 	xhr.onload = function() {
 		var state = JSON.parse(xhr.responseText);
 		document.body.innerHTML = '';
