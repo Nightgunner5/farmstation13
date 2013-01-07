@@ -18,6 +18,74 @@ func main() {
 		io.WriteString(w, Interface)
 	})
 
+	http.HandleFunc("/use/drain/", func(w http.ResponseWriter, r *http.Request) {
+		i, err := strconv.ParseInt(r.URL.Path[len("/use/drain/"):], 10, 64)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+
+		w.WriteHeader(http.StatusNoContent)
+
+		state.Lock()
+		defer state.Unlock()
+		if 0 <= int(i) && int(i) < len(state.Planters) {
+			state.Planters[i].Solution = Solution{}
+		}
+	})
+
+	http.HandleFunc("/use/chainsaw/", func(w http.ResponseWriter, r *http.Request) {
+		i, err := strconv.ParseInt(r.URL.Path[len("/use/chainsaw/"):], 10, 64)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+
+		w.WriteHeader(http.StatusNoContent)
+
+		state.Lock()
+		defer state.Unlock()
+		if 0 <= int(i) && int(i) < len(state.Planters) {
+			state.Planters[i].Health -= 20
+			if state.Planters[i].Health < 0 {
+				state.Planters[i].Health = 0
+			}
+		}
+	})
+
+	http.HandleFunc("/use/water/", func(w http.ResponseWriter, r *http.Request) {
+		i, err := strconv.ParseInt(r.URL.Path[len("/use/water/"):], 10, 64)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+
+		w.WriteHeader(http.StatusNoContent)
+
+		state.Lock()
+		defer state.Unlock()
+		if 0 <= int(i) && int(i) < len(state.Planters) {
+			state.Planters[i].Solution.Water += 60
+		}
+	})
+
+	http.HandleFunc("/use/compost/", func(w http.ResponseWriter, r *http.Request) {
+		i, err := strconv.ParseInt(r.URL.Path[len("/use/compost/"):], 10, 64)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+
+		w.WriteHeader(http.StatusNoContent)
+
+		state.Lock()
+		defer state.Unlock()
+		if 0 <= int(i) && int(i) < len(state.Planters) {
+			state.Planters[i].Solution.Compost += 10
+			// TODO: use up compost
+		}
+	})
+
 	http.HandleFunc("/harvest/", func(w http.ResponseWriter, r *http.Request) {
 		i, err := strconv.ParseInt(r.URL.Path[len("/harvest/"):], 10, 64)
 		if err != nil {
@@ -65,7 +133,46 @@ const Interface = `<!DOCTYPE html>
 	<script>
 function planter(i, name, health, data) {
 	var p = document.createElement('div');
-	var n = document.createElement('strong');
+	var n = document.createTextNode('(');
+	p.appendChild(n);
+
+	n = document.createElement('a');
+	n.href = '/use/drain/' + i;
+	n.title = 'Drain';
+	n.innerText = 'D';
+	p.appendChild(n);
+
+	n = document.createTextNode(' ');
+	p.appendChild(n);
+
+	n = document.createElement('a');
+	n.href = '/use/chainsaw/' + i;
+	n.title = 'Chainsaw';
+	n.innerText = 'X';
+	p.appendChild(n);
+
+	n = document.createTextNode(' ');
+	p.appendChild(n);
+
+	n = document.createElement('a');
+	n.href = '/use/water/' + i;
+	n.title = 'Water';
+	n.innerText = 'W';
+	p.appendChild(n);
+
+	n = document.createTextNode(' ');
+	p.appendChild(n);
+
+	n = document.createElement('a');
+	n.href = '/use/compost/' + i;
+	n.title = 'Compost';
+	n.innerText = 'C';
+	p.appendChild(n);
+
+	n = document.createTextNode(') ');
+	p.appendChild(n);
+
+	n = document.createElement('strong');
 	n.innerText = name;
 	p.appendChild(n);
 
@@ -86,6 +193,8 @@ function planter(i, name, health, data) {
 	solution += data.TopCrop;
 	if (data.TopCrop > 0) contents.push('TopCrop');
 	solution = Math.round(solution * 100) / 100;
+
+	if (contents.length == 0) contents.push('Nothing');
 
 	n = document.createTextNode(solution + ' units of ' + contents.join(', '));
 	p.appendChild(n);
