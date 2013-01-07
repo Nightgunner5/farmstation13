@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 func main() {
@@ -15,6 +16,23 @@ func main() {
 		}
 
 		io.WriteString(w, Interface)
+	})
+
+	http.HandleFunc("/harvest/", func(w http.ResponseWriter, r *http.Request) {
+		i, err := strconv.ParseInt(r.URL.Path[len("/harvest/"):], 10, 64)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+
+		w.WriteHeader(http.StatusNoContent)
+
+		stateLock.Lock()
+		defer stateLock.Unlock()
+		if 0 <= int(i) && int(i) < len(state) {
+			status := state[int(i)].Harvest()
+			_ = status // TODO
+		}
 	})
 
 	http.HandleFunc("/state", func(w http.ResponseWriter, r *http.Request) {
@@ -40,7 +58,7 @@ const Interface = `<!DOCTYPE html>
 </head>
 <body>
 	<script>
-function planter(name, health, data) {
+function planter(i, name, health, data) {
 	var p = document.createElement('div');
 	var n = document.createElement('strong');
 	n.innerText = name;
@@ -74,7 +92,15 @@ function planter(name, health, data) {
 		n = document.createTextNode(' (Unhealthy)');
 		p.appendChild(n);
 	} else if (health == 0) {
-		n = document.createTextNode(' (Dead)');
+		n = document.createTextNode(' (');
+		p.appendChild(n);
+
+		n = document.createElement('a');
+		n.href = '/harvest/' + i;
+		n.innerText = 'Dead';
+		p.appendChild(n);
+
+		n = document.createTextNode(')');
 		p.appendChild(n);
 	}
 
@@ -83,8 +109,18 @@ function planter(name, health, data) {
 			n = document.createTextNode(' (Sprouting)');
 			p.appendChild(n);
 		} else if (data.GrowthCycle == 0) {
-			n = document.createTextNode(' (Harvestable)');
-			p.appendChild(n);
+			if (data.Yield != 0) {
+				n = document.createTextNode(' (');
+				p.appendChild(n);
+
+				n = document.createElement('a');
+				n.href = '/harvest/' + i;
+				n.innerText = 'Harvestable';
+				p.appendChild(n);
+
+				n = document.createTextNode(')');
+				p.appendChild(n);
+			}
 		} else {
 			n = document.createTextNode(' (Growing)');
 			p.appendChild(n);
@@ -100,11 +136,11 @@ setInterval(function() {
 	xhr.onload = function() {
 		var state = JSON.parse(xhr.responseText);
 		document.body.innerHTML = '';
-		state.forEach(function(p) {
+		state.forEach(function(p, i) {
 			if (p.Name) {
-				planter(p.Name, p.Health, p);
+				planter(i, p.Name, p.Health, p);
 			} else {
-				planter('Empty', -1, p);
+				planter(i, 'Empty', -1, p);
 			}
 		});
 	};
