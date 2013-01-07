@@ -27,11 +27,16 @@ func main() {
 
 		w.WriteHeader(http.StatusNoContent)
 
-		stateLock.Lock()
-		defer stateLock.Unlock()
-		if 0 <= int(i) && int(i) < len(state) {
-			status := state[int(i)].Harvest()
-			_ = status // TODO
+		state.Lock()
+		defer state.Unlock()
+		if 0 <= int(i) && int(i) < len(state.Planters) {
+			crop := state.Planters[int(i)].Crop
+			amount := state.Planters[int(i)].Harvest()
+			if amount < 0 {
+				// TODO
+				return
+			}
+			state.Harvested[crop.Name] += uint(amount)
 		}
 	})
 
@@ -43,8 +48,8 @@ func main() {
 
 		w.Header().Set("Content-Type", "application/json")
 
-		stateLock.RLock()
-		defer stateLock.RUnlock()
+		state.RLock()
+		defer state.RUnlock()
 		json.NewEncoder(w).Encode(state)
 	})
 
@@ -130,19 +135,44 @@ function planter(i, name, health, data) {
 	document.body.appendChild(p);
 }
 
+function harvested(crop, amount) {
+	var harvested = document.getElementById('harvested');
+	if (!harvested) {
+		harvested = document.createElement('div');
+		harvested.style.position = 'absolute';
+		harvested.style.top = '8px';
+		harvested.style.right = '8px';
+		document.body.appendChild(harvested);
+	}
+
+	var h = document.createElement('div');
+	var n = document.createElement('strong');
+	n.innerText = amount + 'x';
+	h.appendChild(n);
+
+	n = document.createTextNode(' ' + crop);
+	h.appendChild(n);
+
+	harvested.appendChild(h);
+}
+
 setInterval(function() {
 	var xhr = new XMLHttpRequest();
 	xhr.open('get', '/state', true);
 	xhr.onload = function() {
 		var state = JSON.parse(xhr.responseText);
 		document.body.innerHTML = '';
-		state.forEach(function(p, i) {
+		state.Planters.forEach(function(p, i) {
 			if (p.Name) {
 				planter(i, p.Name, p.Health, p);
 			} else {
 				planter(i, 'Empty', -1, p);
 			}
 		});
+		for (var crop in state.Harvested) {
+			var amount = state.Harvested[crop];
+			if (amount > 0) harvested(crop, amount);
+		}
 	};
 	xhr.send();
 }, 1000);

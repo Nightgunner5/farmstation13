@@ -33,6 +33,10 @@ func (p *Planter) Defaults() {
 	p.Health = 100
 	p.YieldScale = 1
 	p.TimeScale = 1
+	if p.Crop != nil {
+		p.HarvestsLeft = p.Crop.Harvests
+		p.GrowthCycle = uint16(p.Crop.Time)
+	}
 }
 
 func moveTowards(current *float32, goal, scale float32) {
@@ -54,60 +58,45 @@ func (p *Planter) Tick() {
 		if rand.Intn(100) == 0 {
 			p.Crop = Weeds[rand.Intn(len(Weeds))]
 			p.Defaults()
-			p.GrowthCycle = uint16(p.Crop.Time)
 		}
 		return
 	}
 
-	if p.Health > 0 && p.GrowthCycle != 0 {
-		growth := uint16(rand.Intn(int(10 / p.TimeScale)))
-		if p.GrowthCycle < growth {
-			p.GrowthCycle = 0
+	if p.Health > 0 {
+		if p.GrowthCycle != 0 {
+			growth := uint16(rand.Intn(int(10 / p.TimeScale)))
+			if p.GrowthCycle < growth {
+				p.GrowthCycle = 0
 
-			if p.Crop.Name == "Slurrypod" {
-				p.Health = 0
-				go func() {
-					stateLock.Lock()
-					defer stateLock.Unlock()
-					for _, p := range state {
+				if p.Crop.Name == "Slurrypod" {
+					p.Health = 0
+					for _, p := range state.Planters {
 						p.Solution.ToxicSlurry += rand.Float32()*10 + 10
 					}
-				}()
+				}
+			} else {
+				p.GrowthCycle -= growth
 			}
-		} else {
-			p.GrowthCycle -= growth
-		}
-	} else if p.Crop.Name == "Radweed" {
-		go func() {
-			stateLock.Lock()
-			defer stateLock.Unlock()
-			for _, p := range state {
+		} else if p.Crop.Name == "Radweed" {
+			for _, p := range state.Planters {
 				moveTowards(&p.Dehydration, 100, 10)
 			}
-		}()
-	} else if p.Crop.Name == "Lasher" {
-		go func() {
-			stateLock.Lock()
-			defer stateLock.Unlock()
-			self := p
-			for _, p := range state {
-				if p != self {
-					moveTowards(&p.Health, 0, 10)
+		} else if p.Crop.Name == "Lasher" {
+			for _, other := range state.Planters {
+				if other != p {
+					moveTowards(&other.Health, 0, 10)
 				}
 			}
-		}()
-	} else if p.Crop.Name == "Creeper" {
-		go func() {
-			stateLock.Lock()
-			defer stateLock.Unlock()
-			c := p.Crop
-			for _, p := range state {
-				if p.Crop == nil && rand.Intn(100) == 0 {
-					p.Crop = c
-					p.Defaults()
+		} else if p.Crop.Name == "Creeper" {
+			for _, other := range state.Planters {
+				if other.Crop == nil && rand.Intn(100) == 0 {
+					other.Crop = p.Crop
+					other.Health = p.Health
+					other.Dehydration = p.Dehydration
+					other.Defaults()
 				}
 			}
-		}()
+		}
 	}
 
 	if p.Health <= 0 {
