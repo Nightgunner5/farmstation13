@@ -11,6 +11,13 @@ var (
 )
 
 func init() {
+	for i := 0; i < 20; i++ {
+		p := new(Planter)
+		p.Defaults()
+		p.Solution.Water = 200
+		state[p] = true
+	}
+
 	go func() {
 		for {
 			time.Sleep(time.Second)
