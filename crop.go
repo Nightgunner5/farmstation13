@@ -13,7 +13,7 @@ const (
 type Time uint16
 
 const (
-	VeryFast Time = 1 << (iota + 5)
+	VeryFast Time = 1 << (iota*2 + 3)
 	Fast
 	Average
 	Slow
@@ -48,7 +48,6 @@ var Crops = []Crop{
 	{"Lemon", Fruit, 4, 50, VerySlow},
 	{"Lettuce", Vegetable, 7, 1, Fast},
 	{"Lime", Fruit, 4, 50, VerySlow},
-	{"Maneater", Weed, 0, 0, Slow},
 	{"Melon", Fruit, 1, 25, Slow},
 	{"Nureous", Herb, 3, 30, Average},
 	{"Onion", Vegetable, 6, 40, Average},

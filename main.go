@@ -78,6 +78,19 @@ function planter(name, health, data) {
 		p.appendChild(n);
 	}
 
+	if (health > 0) {
+		if (data.GrowthCycle > data.Time / 2) {
+			n = document.createTextNode(' (Sprouting)');
+			p.appendChild(n);
+		} else if (data.GrowthCycle == 0) {
+			n = document.createTextNode(' (Harvestable)');
+			p.appendChild(n);
+		} else {
+			n = document.createTextNode(' (Growing)');
+			p.appendChild(n);
+		}
+	}
+
 	document.body.appendChild(p);
 }
 

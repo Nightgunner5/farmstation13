@@ -59,14 +59,13 @@ func (p *Planter) Tick() {
 		return
 	}
 
-	if p.GrowthCycle != 0 {
+	if p.Health > 0 && p.GrowthCycle != 0 {
 		growth := uint16(rand.Intn(int(10 / p.TimeScale)))
 		if p.GrowthCycle < growth {
 			p.GrowthCycle = 0
 
 			if p.Crop.Name == "Slurrypod" {
-				p.Crop = nil
-				p.Defaults()
+				p.Health = 0
 				go func() {
 					stateLock.Lock()
 					defer stateLock.Unlock()
@@ -84,6 +83,17 @@ func (p *Planter) Tick() {
 			defer stateLock.Unlock()
 			for _, p := range state {
 				moveTowards(&p.Dehydration, 100, 10)
+			}
+		}()
+	} else if p.Crop.Name == "Lasher" {
+		go func() {
+			stateLock.Lock()
+			defer stateLock.Unlock()
+			self := p
+			for _, p := range state {
+				if p != self {
+					moveTowards(&p.Health, 0, 10)
+				}
 			}
 		}()
 	} else if p.Crop.Name == "Creeper" {
