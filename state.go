@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	state     = make(map[*Planter]bool)
+	state     []*Planter
 	stateLock sync.RWMutex
 )
 
@@ -15,14 +15,14 @@ func init() {
 		p := new(Planter)
 		p.Defaults()
 		p.Solution.Water = 200
-		state[p] = true
+		state = append(state, p)
 	}
 
 	go func() {
 		for {
 			time.Sleep(time.Second)
 			stateLock.Lock()
-			for p := range state {
+			for _, p := range state {
 				p.Tick()
 			}
 			stateLock.Unlock()

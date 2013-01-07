@@ -10,10 +10,10 @@ const (
 	Weed
 )
 
-type Time uint8
+type Time uint16
 
 const (
-	VeryFast Time = 1 << iota
+	VeryFast Time = 1 << (iota + 5)
 	Fast
 	Average
 	Slow

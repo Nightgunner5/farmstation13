@@ -39,6 +39,64 @@ const Interface = `<!DOCTYPE html>
 	<title>Farm Station 13</title>
 </head>
 <body>
-	
+	<script>
+function planter(name, health, data) {
+	var p = document.createElement('div');
+	var n = document.createElement('strong');
+	n.innerText = name;
+	p.appendChild(n);
+
+	n = document.createTextNode(' - ');
+	p.appendChild(n);
+
+	var solution = 0, contents = [];
+	solution += data.Water;
+	if (data.Water > 0) contents.push('Water');
+	solution += data.Compost;
+	if (data.Compost > 0) contents.push('Compost');
+	solution += data.ToxicSlurry;
+	if (data.ToxicSlurry > 0) contents.push('Toxic Slurry');
+	solution += data.Mutriant;
+	if (data.Mutriant > 0) contents.push('Mutriant');
+	solution += data.GroBoost;
+	if (data.GroBoost > 0) contents.push('Gro-Boost');
+	solution += data.TopCrop;
+	if (data.TopCrop > 0) contents.push('TopCrop');
+	solution = Math.round(solution * 100) / 100;
+
+	n = document.createTextNode(solution + ' units of ' + contents.join(', '));
+	p.appendChild(n);
+
+	if (health > 50) {
+		n = document.createTextNode(' (Healthy)');
+		p.appendChild(n);
+	} else if (health > 0) {
+		n = document.createTextNode(' (Unhealthy)');
+		p.appendChild(n);
+	} else if (health == 0) {
+		n = document.createTextNode(' (Dead)');
+		p.appendChild(n);
+	}
+
+	document.body.appendChild(p);
+}
+
+setInterval(function() {
+	var xhr = new XMLHttpRequest();
+	xhr.open('get', '/state', true);
+	xhr.onload = function() {
+		var state = JSON.parse(xhr.responseText);
+		document.body.innerHTML = '';
+		state.forEach(function(p) {
+			if (p.Name) {
+				planter(p.Name, p.Health, p);
+			} else {
+				planter('Empty', -1, p);
+			}
+		});
+	};
+	xhr.send();
+}, 1000);
+	</script>
 </body>
 </html>`

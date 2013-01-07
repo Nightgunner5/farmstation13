@@ -70,8 +70,8 @@ func (p *Planter) Tick() {
 				go func() {
 					stateLock.Lock()
 					defer stateLock.Unlock()
-					for p := range state {
-						p.Solution.ToxicSlurry += rand.Float32()*50 + 50
+					for _, p := range state {
+						p.Solution.ToxicSlurry += rand.Float32()*10 + 10
 					}
 				}()
 			}
@@ -82,7 +82,7 @@ func (p *Planter) Tick() {
 		go func() {
 			stateLock.Lock()
 			defer stateLock.Unlock()
-			for p := range state {
+			for _, p := range state {
 				moveTowards(&p.Dehydration, 100, 10)
 			}
 		}()
@@ -91,7 +91,7 @@ func (p *Planter) Tick() {
 			stateLock.Lock()
 			defer stateLock.Unlock()
 			c := p.Crop
-			for p := range state {
+			for _, p := range state {
 				if p.Crop == nil && rand.Intn(100) == 0 {
 					p.Crop = c
 					p.Defaults()
