@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"strconv"
 )
 
@@ -81,8 +82,29 @@ func main() {
 		state.Lock()
 		defer state.Unlock()
 		if 0 <= int(i) && int(i) < len(state.Planters) {
-			state.Planters[i].Solution.Compost += 10
-			// TODO: use up compost
+			compost := state.Harvested["Compost"]
+			if compost > 10 {
+				compost = 10
+			}
+			state.Harvested["Compost"] -= compost
+			state.Planters[i].Solution.Compost += float32(compost)
+		}
+	})
+
+	http.HandleFunc("/botany/mulch/", func(w http.ResponseWriter, r *http.Request) {
+		crop, err := url.QueryUnescape(r.URL.Path[len("/botany/mulch/"):])
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+
+		w.WriteHeader(http.StatusNoContent)
+
+		state.Lock()
+		defer state.Unlock()
+		if h, ok := state.Harvested[crop]; ok && h > 0 {
+			state.Harvested[crop]--
+			state.Harvested["Compost"]++
 		}
 	})
 
@@ -257,6 +279,7 @@ function harvested(crop, amount) {
 		harvested.style.position = 'absolute';
 		harvested.style.top = '8px';
 		harvested.style.right = '8px';
+		harvested.id = 'harvested';
 		document.body.appendChild(harvested);
 	}
 
@@ -265,8 +288,21 @@ function harvested(crop, amount) {
 	n.innerText = amount + 'x';
 	h.appendChild(n);
 
-	n = document.createTextNode(' ' + crop);
-	h.appendChild(n);
+	if (crop == 'Compost') {
+		n = document.createTextNode(' Compost');
+		h.appendChild(n);
+	} else {
+		n = document.createTextNode(' ' + crop + ' (');
+		h.appendChild(n);
+
+		n = document.createElement('a');
+		n.href = '/botany/mulch/' + crop;
+		n.innerText = 'Mulch';
+		h.appendChild(n);
+
+		n = document.createTextNode(')');
+		h.appendChild(n);
+	}
 
 	harvested.appendChild(h);
 }
@@ -284,10 +320,21 @@ setInterval(function() {
 				planter(i, 'Empty', -1, p);
 			}
 		});
+		var h = [];
 		for (var crop in state.Harvested) {
 			var amount = state.Harvested[crop];
-			if (amount > 0) harvested(crop, amount);
+			if (amount > 0) h.push([crop, amount]);
 		}
+		h.sort(function(a, b) {
+			if (a[0] == 'Compost')
+				return -1;
+			if (b[0] == 'Compost')
+				return 1;
+			return a[0] < b[0] ? -1 : 1;
+		});
+		h.forEach(function(h) {
+			harvested(h[0], h[1]);
+		});
 	};
 	xhr.send();
 }, 1000);
