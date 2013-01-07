@@ -1,7 +1,6 @@
 package main
 
 import (
-	"math"
 	"math/rand"
 )
 
@@ -51,13 +50,54 @@ func moveTowards(current *float32, goal, scale float32) {
 }
 
 func (p *Planter) Tick() {
+	if p.Crop == nil {
+		if rand.Intn(100) == 0 {
+			p.Crop = Weeds[rand.Intn(len(Weeds))]
+			p.Defaults()
+			p.GrowthCycle = uint16(p.Crop.Time)
+		}
+		return
+	}
+
 	if p.GrowthCycle != 0 {
-		growth := rand.Intn(int(10 / p.TimeScale))
+		growth := uint16(rand.Intn(int(10 / p.TimeScale)))
 		if p.GrowthCycle < growth {
 			p.GrowthCycle = 0
+
+			if p.Crop.Name == "Slurrypod" {
+				p.Crop = nil
+				p.Defaults()
+				go func() {
+					stateLock.Lock()
+					defer stateLock.Unlock()
+					for p := range state {
+						p.Solution.ToxicSlurry += rand.Float32()*50 + 50
+					}
+				}()
+			}
 		} else {
 			p.GrowthCycle -= growth
 		}
+	} else if p.Crop.Name == "Radweed" {
+		go func() {
+			stateLock.Lock()
+			defer stateLock.Unlock()
+			for p := range state {
+				moveTowards(&p.Dehydration, 100, 10)
+			}
+		}()
+	} else if p.Crop.Name == "Creeper" {
+		go func() {
+			stateLock.Lock()
+			defer stateLock.Unlock()
+			c := p.Crop
+			for p := range state {
+				if p.Crop == nil && rand.Intn(100) == 0 {
+					p.Crop = c
+					p.Defaults()
+				}
+			}
+		}()
 	}
 
 	if p.Health <= 0 {
@@ -118,7 +158,7 @@ func (p *Planter) Tick() {
 	}
 
 	if p.Dehydration < -50 || p.Dehydration > 50 {
-		moveTowards(&p.Health, 0)
+		moveTowards(&p.Health, 0, 10)
 	}
 	if p.Dehydration <= -100 || p.Dehydration >= 100 {
 		p.Health = 0

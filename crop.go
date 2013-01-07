@@ -67,3 +67,13 @@ var Crops = []Crop{
 	{"Venne", Herb, 3, 30, Average},
 	{"Wheat", Ingredient, 8, 10, Fast},
 }
+
+var Weeds []*Crop
+
+func init() {
+	for i := range Crops {
+		if Crops[i].Type == Weed {
+			Weeds = append(Weeds, &Crops[i])
+		}
+	}
+}
