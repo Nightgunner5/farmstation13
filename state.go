@@ -132,7 +132,11 @@ func HandleSocket(ws *websocket.Conn) {
 			if packet.Planter >= 0 && packet.Planter < len(state.Planters) {
 				p := state.Planters[packet.Planter]
 				if p.Crop != nil {
-					moveTowards(&p.Health, 0, 100)
+					if p.Health <= 0 {
+						p.Crop = nil
+					} else {
+						moveTowards(&p.Health, 0, 100)
+					}
 				}
 			}
 			state.Unlock()
