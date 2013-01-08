@@ -97,9 +97,7 @@ button:active {
 <body>
 	<div id="harvested"></div>
 	<script>
-var ws = new WebSocket('ws://' + location.host + '/botany/sock');
-
-ws.onmessage = function(msg) {
+function handle(msg) {
 	var state = JSON.parse(msg.data);
 
 	for (var i = 0; i < state.Planters.length; ++i) {
@@ -286,6 +284,15 @@ function planter(i, name, health, data) {
 		}
 	}
 }
+
+var ws = new WebSocket('ws://' + location.host + '/botany/sock');
+
+ws.onclose = function closed() {
+	ws = new WebSocket('ws://' + location.host + '/botany/sock');
+	ws.onmessage = handle;
+	ws.onclose = closed;
+};
+ws.onmessage = handle;
 	</script>
 </body>
 </html>`
