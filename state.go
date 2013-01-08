@@ -54,6 +54,8 @@ func init() {
 }
 
 func HandleSocket(ws *websocket.Conn) {
+	addr := ws.Request().RemoteAddr
+
 	go func() {
 		// Write
 		for {
@@ -82,7 +84,7 @@ func HandleSocket(ws *websocket.Conn) {
 		err := websocket.JSON.Receive(ws, &packet)
 
 		if err != nil {
-			log.Println(ws.RemoteAddr(), err)
+			log.Println(addr, err)
 
 			ws.Close()
 			return
@@ -98,6 +100,7 @@ func HandleSocket(ws *websocket.Conn) {
 				if amount < 0 {
 					// TODO
 				} else {
+					log.Println(addr, "harvested", amount, crop.Name)
 					state.Harvested[crop.Name] += uint(amount)
 				}
 			}
@@ -111,6 +114,12 @@ func HandleSocket(ws *websocket.Conn) {
 			state.Lock()
 			if packet.Planter >= 0 && packet.Planter < len(state.Planters) {
 				p := state.Planters[packet.Planter]
+				crop := p.Crop
+				cropName := "empty"
+				if crop != nil {
+					cropName = crop.Name
+				}
+				log.Printf("%s drained planter %d %+v (crop: %s)", addr, packet.Planter, p.Solution, cropName)
 				p.Solution = Solution{}
 			}
 			state.Unlock()
@@ -124,6 +133,7 @@ func HandleSocket(ws *websocket.Conn) {
 			if packet.Planter >= 0 && packet.Planter < len(state.Planters) {
 				p := state.Planters[packet.Planter]
 				if p.Crop != nil {
+					log.Println(addr, "chainsawed planter", packet.Planter, "(crop:", p.Crop.Name+")")
 					if p.Health <= 0 {
 						p.Crop = nil
 					} else {
@@ -142,6 +152,12 @@ func HandleSocket(ws *websocket.Conn) {
 			if packet.Planter >= 0 && packet.Planter < len(state.Planters) {
 				p := state.Planters[packet.Planter]
 				p.Solution.Water += 60
+				crop := p.Crop
+				cropName := "empty"
+				if crop != nil {
+					cropName = crop.Name
+				}
+				log.Println(addr, "watered planter", packet.Planter, "(new level:", p.Solution.Water, "units)", "(crop:", cropName+")")
 			}
 			state.Unlock()
 
@@ -165,6 +181,7 @@ func HandleSocket(ws *websocket.Conn) {
 						p.Solution.TopCrop += rand.Float32() * 50
 					}
 				}
+				log.Println(addr, "added compost to planter", packet.Planter)
 				state.Harvested["Compost"] -= compost
 				p.Solution.Compost += float32(compost)
 			}
@@ -184,6 +201,7 @@ func HandleSocket(ws *websocket.Conn) {
 				if h > 250 {
 					amount = 100
 				}
+				log.Println(addr, "mulched", amount, packet.Crop)
 				state.Harvested[packet.Crop] -= amount
 				state.Harvested["Compost"] += amount
 			}
@@ -204,6 +222,7 @@ func HandleSocket(ws *websocket.Conn) {
 					if p.Crop != nil {
 						continue
 					}
+					log.Println(addr, "planted", packet.Crop)
 					p.Crop = &Crops[i]
 					p.Defaults()
 					break
