@@ -15,6 +15,7 @@ var (
 
 func init() {
 	state.Harvested = make(map[string]uint)
+	state.Harvested["Compost"] = 50
 	for i := 0; i < 20; i++ {
 		p := new(Planter)
 		p.Defaults()

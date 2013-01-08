@@ -267,7 +267,7 @@ function planter(i, name, health, data) {
 
 		n = document.createElement('a');
 		n.href = '/botany/harvest/' + i;
-		n.innerText = 'Dead';
+		n.innerText = data.GrowthCycle == 0 && data.HarvestsLeft != 0 && data.Yield != 0 ? 'Harvestable' : 'Dead';
 		p.appendChild(n);
 
 		n = document.createTextNode(')');
