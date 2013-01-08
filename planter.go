@@ -32,6 +32,7 @@ func (p *Planter) Defaults() {
 	p.Health = 100
 	p.YieldScale = 1
 	p.TimeScale = 1
+	p.Mutation = 0
 	if p.Crop != nil {
 		p.HarvestsLeft = p.Crop.Harvests
 		p.GrowthCycle = uint16(p.Crop.Time)
@@ -138,7 +139,7 @@ func (p *Planter) Tick() {
 	moveTowards(&p.Solution.TopCrop, 0, 0.1)
 	moveTowards(&p.TimeScale, 1, 0.01)
 	moveTowards(&p.YieldScale, 1, 0.01)
-	moveTowards(&p.Mutation, 100, 0.1)
+	moveTowards(&p.Mutation, 100, 0.2)
 
 	if p.Solution.Water > 200 {
 		moveTowards(&p.Dehydration, -100, 10)
@@ -150,15 +151,16 @@ func (p *Planter) Tick() {
 
 	if p.Solution.Compost > 0 {
 		moveTowards(&p.Health, 100, 5)
-		moveTowards(&p.TimeScale, 0, 0.01)
-		if p.YieldScale < 10 { // don't move down if there's TopCrop
-			moveTowards(&p.YieldScale, 10, 0.05)
+		moveTowards(&p.TimeScale, 0.01, 0.005)
+		if p.YieldScale < 20 { // don't move down if there's TopCrop
+			moveTowards(&p.YieldScale, 20, 0.05)
 		}
 	}
 
 	if p.Solution.ToxicSlurry > 0 {
 		moveTowards(&p.Health, 0, 10)
 		moveTowards(&p.Dehydration, 100, 10)
+		moveTowards(&p.TimeScale, 10, 0.05)
 		moveTowards(&p.YieldScale, 0, 0.05)
 		moveTowards(&p.Mutation, 100, 5)
 	}
@@ -172,12 +174,12 @@ func (p *Planter) Tick() {
 		}
 
 		if p.Solution.GroBoost > 0 {
-			moveTowards(&p.TimeScale, 0.001, 0.1)
+			moveTowards(&p.TimeScale, 0.01, 0.05)
 			moveTowards(&p.Solution.Water, 0, 20) // extra gulp
 		}
 
 		if p.Solution.TopCrop > 0 {
-			moveTowards(&p.YieldScale, 20, 0.05)
+			moveTowards(&p.YieldScale, 100, 0.1)
 			if rand.Intn(100) == 0 && p.HarvestsLeft != 0 {
 				p.HarvestsLeft--
 			}

@@ -77,6 +77,16 @@ var Crops = []Crop{
 		Yield:    3,
 		Harvests: 30,
 		Time:     Average,
+
+		Mutations: []Crop{
+			{
+				Name:     "Apathyroot",
+				Type:     Vegetable,
+				Yield:    1,
+				Harvests: 160,
+				Time:     VerySlow,
+			},
+		},
 	},
 	{
 		Name:     "Chili",
@@ -333,6 +343,16 @@ var Crops = []Crop{
 		Yield:    5,
 		Harvests: 40,
 		Time:     Slow,
+
+		Mutations: []Crop{
+			{
+				Name:     "Thomas-ato",
+				Type:     Fruit,
+				Yield:    20,
+				Harvests: 20,
+				Time:     VerySlow,
+			},
+		},
 	},
 	{
 		Name:     "Venne",
