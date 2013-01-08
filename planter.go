@@ -87,6 +87,11 @@ func (p *Planter) Tick() {
 				for _, p := range state.Planters {
 					p.Solution.ToxicSlurry += rand.Float32()*10 + 10
 				}
+			} else if p.Crop.Name == "Pulsating Mass" {
+				p.Health = 0
+				for _, p := range state.Planters {
+					p.Solution.Mutriant += 10000
+				}
 			}
 		} else {
 			p.GrowthCycle -= growth

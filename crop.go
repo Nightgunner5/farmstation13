@@ -209,6 +209,16 @@ var Crops = []Crop{
 		Yield:    4,
 		Harvests: 60,
 		Time:     VerySlow,
+
+		Mutations: []Crop{
+			{
+				Name:     "Blood Orange",
+				Type:     Fruit,
+				Yield:    2,
+				Harvests: 500,
+				Time:     VeryFast,
+			},
+		},
 	},
 	{
 		Name:     "Peanut",
@@ -244,6 +254,16 @@ var Crops = []Crop{
 		Yield:    0,
 		Harvests: 0,
 		Time:     Average,
+
+		Mutations: []Crop{
+			{
+				Name:     "Pulsating Mass",
+				Type:     Weed,
+				Yield:    0,
+				Harvests: 0,
+				Time:     Fast,
+			},
+		},
 	},
 	{
 		Name:     "Soy",
@@ -265,6 +285,16 @@ var Crops = []Crop{
 		Yield:    4,
 		Harvests: infinite,
 		Time:     VeryFast,
+
+		Mutations: []Crop{
+			{
+				Name:     "Crab Grass",
+				Type:     Weed,
+				Yield:    1,
+				Harvests: infinite,
+				Time:     Slow,
+			},
+		},
 	},
 	{
 		Name:     "Sugar Cane",
