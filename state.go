@@ -9,6 +9,7 @@ var (
 	state struct {
 		Planters  []*Planter
 		Harvested map[string]uint
+		SeedTypes []string
 		sync.RWMutex
 	}
 )
@@ -21,6 +22,11 @@ func init() {
 		p.Defaults()
 		p.Solution.Water = 200
 		state.Planters = append(state.Planters, p)
+	}
+	for i := range Crops {
+		if Crops[i].Type != Weed {
+			state.SeedTypes = append(state.SeedTypes, Crops[i].Name)
+		}
 	}
 
 	go func() {

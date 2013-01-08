@@ -91,6 +91,34 @@ func main() {
 		}
 	})
 
+	http.HandleFunc("/botany/plant/", func(w http.ResponseWriter, r *http.Request) {
+		crop, err := url.QueryUnescape(r.URL.Path[len("/botany/plant/"):])
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+
+		for i := range Crops {
+			if Crops[i].Type == Weed || Crops[i].Name != crop {
+				continue
+			}
+
+			w.WriteHeader(http.StatusNoContent)
+
+			state.Lock()
+			defer state.Unlock()
+			for j := range state.Planters {
+				if state.Planters[j].Crop != nil {
+					continue
+				}
+				state.Planters[j].Crop = &Crops[i]
+				state.Planters[j].Defaults()
+				return
+			}
+			return
+		}
+	})
+
 	http.HandleFunc("/botany/mulch/", func(w http.ResponseWriter, r *http.Request) {
 		crop, err := url.QueryUnescape(r.URL.Path[len("/botany/mulch/"):])
 		if err != nil {
@@ -155,6 +183,12 @@ const Interface = `<!DOCTYPE html>
 	position: absolute;
 	right: 8px;
 	top: 8px;
+}
+#seeds {
+	position: fixed;
+	right: 8px;
+	bottom: 8px;
+	width: 20%;
 }
 .plantName {
 	display: inline-block;
@@ -359,6 +393,16 @@ setInterval(function() {
 		});
 		h.forEach(function(h) {
 			harvested(h[0], h[1]);
+		});
+		var seeds = document.createElement('div');
+		seeds.id = 'seeds';
+		document.body.appendChild(seeds);
+		state.SeedTypes.forEach(function(s) {
+			var a = document.createElement('a');
+			a.href = '/botany/plant/' + s;
+			a.innerText = s;
+			seeds.appendChild(a);
+			seeds.appendChild(document.createTextNode(' '));
 		});
 	};
 	xhr.send();
