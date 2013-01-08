@@ -24,8 +24,7 @@ type Planter struct {
 	TimeScale    float32 // multiplier for time (higher is slower).
 	GrowthCycle  uint16  // if this is 0, the plant is harvestable.
 	HarvestsLeft uint16  // ten times the estimated number of remaining harvests.
-
-	// TODO: mutation
+	Mutation     float32 // if this reaches 100, the plant mutates. high values cause damage to the plant.
 }
 
 func (p *Planter) Defaults() {
@@ -64,6 +63,18 @@ func (p *Planter) Tick() {
 
 	if p.Health <= 0 {
 		return
+	}
+
+	if p.Mutation >= 100 {
+		p.Health += 50
+		p.Mutation = 0
+		if len(p.Crop.Mutations) > 0 {
+			p.Crop = &p.Crop.Mutations[rand.Intn(len(p.Crop.Mutations))]
+			p.HarvestsLeft = p.Crop.Harvests
+			moveTowards(&p.Solution.ToxicSlurry, 100, 10)
+		}
+	} else if p.Mutation > 50 {
+		moveTowards(&p.Health, 0, 2.5)
 	}
 
 	if p.GrowthCycle != 0 {
@@ -122,6 +133,7 @@ func (p *Planter) Tick() {
 	moveTowards(&p.Solution.TopCrop, 0, 0.1)
 	moveTowards(&p.TimeScale, 1, 0.01)
 	moveTowards(&p.YieldScale, 1, 0.01)
+	moveTowards(&p.Mutation, 100, 0.1)
 
 	if p.Solution.Water > 200 {
 		moveTowards(&p.Dehydration, -100, 10)
@@ -143,7 +155,7 @@ func (p *Planter) Tick() {
 		moveTowards(&p.Health, 0, 10)
 		moveTowards(&p.Dehydration, 100, 10)
 		moveTowards(&p.YieldScale, 0, 0.05)
-		// TODO: mutation
+		moveTowards(&p.Mutation, 100, 5)
 	}
 
 	if p.Solution.Mutriant > 0 || p.Solution.GroBoost > 0 || p.Solution.TopCrop > 0 {
@@ -151,7 +163,7 @@ func (p *Planter) Tick() {
 
 		if p.Solution.Mutriant > 0 {
 			moveTowards(&p.Health, 0, 10)
-			// TODO: mutation
+			moveTowards(&p.Mutation, 100, 25)
 		}
 
 		if p.Solution.GroBoost > 0 {

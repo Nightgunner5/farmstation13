@@ -26,6 +26,8 @@ type Crop struct {
 	Yield    uint16 // 0 means unharvestable
 	Harvests uint16 // 10 times the average number of harvests. 1 for definite single harvest.
 	Time     Time
+
+	Mutations []Crop
 }
 
 const infinite = ^uint16(0)
@@ -37,6 +39,16 @@ var Crops = []Crop{
 		Yield:    5,
 		Harvests: 80,
 		Time:     VerySlow,
+
+		Mutations: []Crop{
+			{
+				Name:     "Snapple",
+				Type:     Fruit,
+				Yield:    2,
+				Harvests: 120,
+				Time:     Average,
+			},
+		},
 	},
 	{
 		Name:     "Asomna",
@@ -72,6 +84,16 @@ var Crops = []Crop{
 		Yield:    3,
 		Harvests: 40,
 		Time:     Slow,
+
+		Mutations: []Crop{
+			{
+				Name:     "Chilly",
+				Type:     Ingredient,
+				Yield:    20,
+				Harvests: 10,
+				Time:     VerySlow,
+			},
+		},
 	},
 	{
 		Name:     "Commol",
@@ -116,7 +138,7 @@ var Crops = []Crop{
 		Time:     Average,
 	},
 	{
-		Name:     "Grape",
+		Name:     "Grapes",
 		Type:     Fruit,
 		Yield:    5,
 		Harvests: 80,
@@ -156,6 +178,16 @@ var Crops = []Crop{
 		Yield:    1,
 		Harvests: 25,
 		Time:     Slow,
+
+		Mutations: []Crop{
+			{
+				Name:     "George Melons",
+				Type:     Fruit,
+				Yield:    7,
+				Harvests: 1,
+				Time:     VerySlow,
+			},
+		},
 	},
 	{
 		Name:     "Nureous",
@@ -247,6 +279,23 @@ var Crops = []Crop{
 		Yield:    4,
 		Harvests: 40,
 		Time:     Fast,
+
+		Mutations: []Crop{
+			{
+				Name:     "Synthbrain",
+				Type:     Ingredient,
+				Yield:    10,
+				Harvests: 60,
+				Time:     Slow,
+			},
+			{
+				Name:     "Synthflesh",
+				Type:     Ingredient,
+				Yield:    1,
+				Harvests: infinite,
+				Time:     VerySlow,
+			},
+		},
 	},
 	{
 		Name:     "Tomato",
@@ -268,6 +317,16 @@ var Crops = []Crop{
 		Yield:    8,
 		Harvests: 10,
 		Time:     Fast,
+
+		Mutations: []Crop{
+			{
+				Name:     "Steelwheat",
+				Type:     Ingredient,
+				Yield:    3,
+				Harvests: 400,
+				Time:     Average,
+			},
+		},
 	},
 }
 

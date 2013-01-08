@@ -4,12 +4,16 @@ import (
 	"encoding/json"
 	"io"
 	"log"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"strconv"
+	"time"
 )
 
 func main() {
+	rand.Seed(time.Now().UnixNano())
+
 	http.HandleFunc("/botany/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/botany/" {
 			http.NotFound(w, r)
@@ -83,8 +87,16 @@ func main() {
 		defer state.Unlock()
 		if 0 <= int(i) && int(i) < len(state.Planters) {
 			compost := state.Harvested["Compost"]
-			if compost > 10 {
+			if compost >= 10 {
 				compost = 10
+				switch rand.Intn(3) {
+				case 0:
+					state.Planters[i].Solution.Mutriant += rand.Float32() * 50
+				case 1:
+					state.Planters[i].Solution.GroBoost += rand.Float32() * 50
+				case 2:
+					state.Planters[i].Solution.TopCrop += rand.Float32() * 50
+				}
 			}
 			state.Harvested["Compost"] -= compost
 			state.Planters[i].Solution.Compost += float32(compost)
