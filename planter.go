@@ -90,7 +90,7 @@ func (p *Planter) Tick() {
 			} else if p.Crop.Name == "Pulsating Mass" {
 				p.Health = 0
 				for _, p := range state.Planters {
-					p.Solution.Mutriant += 10000
+					p.Solution.Mutriant += rand.Float32()*10 + 10
 				}
 			}
 		} else {
