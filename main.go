@@ -1,13 +1,10 @@
 package main
 
 import (
-	"encoding/json"
 	"io"
 	"log"
 	"math/rand"
 	"net/http"
-	"net/url"
-	"strconv"
 	"time"
 )
 
@@ -21,166 +18,6 @@ func main() {
 		}
 
 		io.WriteString(w, Interface)
-	})
-
-	http.HandleFunc("/botany/use/drain/", func(w http.ResponseWriter, r *http.Request) {
-		i, err := strconv.ParseInt(r.URL.Path[len("/botany/use/drain/"):], 10, 64)
-		if err != nil {
-			http.NotFound(w, r)
-			return
-		}
-
-		w.WriteHeader(http.StatusNoContent)
-
-		state.Lock()
-		defer state.Unlock()
-		if 0 <= int(i) && int(i) < len(state.Planters) {
-			state.Planters[i].Solution = Solution{}
-		}
-	})
-
-	http.HandleFunc("/botany/use/chainsaw/", func(w http.ResponseWriter, r *http.Request) {
-		i, err := strconv.ParseInt(r.URL.Path[len("/botany/use/chainsaw/"):], 10, 64)
-		if err != nil {
-			http.NotFound(w, r)
-			return
-		}
-
-		w.WriteHeader(http.StatusNoContent)
-
-		state.Lock()
-		defer state.Unlock()
-		if 0 <= int(i) && int(i) < len(state.Planters) {
-			state.Planters[i].Health -= 20
-			if state.Planters[i].Health < 0 {
-				state.Planters[i].Health = 0
-			}
-		}
-	})
-
-	http.HandleFunc("/botany/use/water/", func(w http.ResponseWriter, r *http.Request) {
-		i, err := strconv.ParseInt(r.URL.Path[len("/botany/use/water/"):], 10, 64)
-		if err != nil {
-			http.NotFound(w, r)
-			return
-		}
-
-		w.WriteHeader(http.StatusNoContent)
-
-		state.Lock()
-		defer state.Unlock()
-		if 0 <= int(i) && int(i) < len(state.Planters) {
-			state.Planters[i].Solution.Water += 60
-		}
-	})
-
-	http.HandleFunc("/botany/use/compost/", func(w http.ResponseWriter, r *http.Request) {
-		i, err := strconv.ParseInt(r.URL.Path[len("/botany/use/compost/"):], 10, 64)
-		if err != nil {
-			http.NotFound(w, r)
-			return
-		}
-
-		w.WriteHeader(http.StatusNoContent)
-
-		state.Lock()
-		defer state.Unlock()
-		if 0 <= int(i) && int(i) < len(state.Planters) {
-			compost := state.Harvested["Compost"]
-			if compost >= 10 {
-				compost = 10
-				switch rand.Intn(3) {
-				case 0:
-					state.Planters[i].Solution.Mutriant += rand.Float32() * 50
-				case 1:
-					state.Planters[i].Solution.GroBoost += rand.Float32() * 50
-				case 2:
-					state.Planters[i].Solution.TopCrop += rand.Float32() * 50
-				}
-			}
-			state.Harvested["Compost"] -= compost
-			state.Planters[i].Solution.Compost += float32(compost)
-		}
-	})
-
-	http.HandleFunc("/botany/plant/", func(w http.ResponseWriter, r *http.Request) {
-		crop, err := url.QueryUnescape(r.URL.Path[len("/botany/plant/"):])
-		if err != nil {
-			http.NotFound(w, r)
-			return
-		}
-
-		for i := range Crops {
-			if Crops[i].Type == Weed || Crops[i].Name != crop {
-				continue
-			}
-
-			w.WriteHeader(http.StatusNoContent)
-
-			state.Lock()
-			defer state.Unlock()
-			for j := range state.Planters {
-				if state.Planters[j].Crop != nil {
-					continue
-				}
-				state.Planters[j].Crop = &Crops[i]
-				state.Planters[j].Defaults()
-				return
-			}
-			return
-		}
-	})
-
-	http.HandleFunc("/botany/mulch/", func(w http.ResponseWriter, r *http.Request) {
-		crop, err := url.QueryUnescape(r.URL.Path[len("/botany/mulch/"):])
-		if err != nil {
-			http.NotFound(w, r)
-			return
-		}
-
-		w.WriteHeader(http.StatusNoContent)
-
-		state.Lock()
-		defer state.Unlock()
-		if h, ok := state.Harvested[crop]; ok && h > 0 {
-			state.Harvested[crop]--
-			state.Harvested["Compost"]++
-		}
-	})
-
-	http.HandleFunc("/botany/harvest/", func(w http.ResponseWriter, r *http.Request) {
-		i, err := strconv.ParseInt(r.URL.Path[len("/botany/harvest/"):], 10, 64)
-		if err != nil {
-			http.NotFound(w, r)
-			return
-		}
-
-		w.WriteHeader(http.StatusNoContent)
-
-		state.Lock()
-		defer state.Unlock()
-		if 0 <= int(i) && int(i) < len(state.Planters) {
-			crop := state.Planters[int(i)].Crop
-			amount := state.Planters[int(i)].Harvest()
-			if amount < 0 {
-				// TODO
-				return
-			}
-			state.Harvested[crop.Name] += uint(amount)
-		}
-	})
-
-	http.HandleFunc("/botany/state", func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/botany/state" {
-			http.NotFound(w, r)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-
-		state.RLock()
-		defer state.RUnlock()
-		json.NewEncoder(w).Encode(state)
 	})
 
 	log.Fatal(http.ListenAndServe(":26301", nil))
@@ -200,7 +37,32 @@ const Interface = `<!DOCTYPE html>
 	position: fixed;
 	right: 8px;
 	bottom: 8px;
-	width: 20%;
+	max-width: 300px;
+}
+button {
+	border: 1px solid #777;
+	border-radius: 5px;
+	background: -moz-linear-gradient(top, #eee, #ccc, #bbb, #999);
+	background: -webkit-linear-gradient(top, #eee, #ccc, #bbb, #999);
+	background: linear-gradient(top, #eee, #ccc, #bbb, #999);
+}
+button:active {
+	box-shadow: 0 0 5px #000 inset;
+}
+[id^="planter-"]>button:first-child {
+	border-radius: 5px 0 0 5px;
+	margin: 0;
+}
+[id^="planter-"]>button:first-child+button,
+[id^="planter-"]>button:first-child+button+button {
+	border-radius: 0;
+	border-left: 0;
+	margin: 0;
+}
+[id^="planter-"]>button:first-child+button+button+button {
+	border-radius: 0 5px 5px 0;
+	border-left: 0;
+	margin: 0 5px 0 0;
 }
 .plantName {
 	display: inline-block;
@@ -208,68 +70,146 @@ const Interface = `<!DOCTYPE html>
 }
 .no-water {
 	background-color: #f77;
+	padding: 3px;
+	border-radius: 5px;
+	box-shadow: 0 0 5px 5px #fff inset;
 }
 .low-water {
 	background-color: #ff7;
+	padding: 3px;
+	border-radius: 5px;
+	box-shadow: 0 0 5px 5px #fff inset;
 }
 .good-water {
 	background-color: #7f7;
+	padding: 3px;
+	border-radius: 5px;
+	box-shadow: 0 0 5px 5px #fff inset;
 }
 .drown-water {
 	background-color: #77f;
+	padding: 3px;
+	border-radius: 5px;
+	box-shadow: 0 0 5px 5px #fff inset;
 }
 	</style>
 </head>
 <body>
+	<div id="harvested"></div>
 	<script>
+var ws = new WebSocket('ws://' + location.host + '/botany/sock');
+
+ws.onmessage = function(msg) {
+	var state = JSON.parse(msg.data);
+
+	for (var i = 0; i < state.Planters.length; ++i) {
+		var p = state.Planters[i];
+		if (p.Name) {
+			planter(i, p.Name, p.Health, p);
+		} else {
+			planter(i, '', -1, p);
+		}
+	}
+
+	// Seed Types
+	var seeds = document.getElementById('seeds');
+	if (seeds == null) {
+		seeds = document.createElement('div');
+		seeds.id = 'seeds';
+		state.SeedTypes.forEach(function(s) {
+			var seed = document.createElement('button');
+			seed.innerText = s;
+			seed.onclick = function() {
+				ws.send(JSON.stringify({Action:'Plant', Crop:s}));
+			};
+			seeds.appendChild(seed);
+			seeds.appendChild(document.createTextNode(' '));
+		});
+		document.body.appendChild(seeds);
+	}
+
+	// Harvested
+	for (var crop in state.Harvested) {
+		var amount = state.Harvested[crop];
+		var el = document.getElementById('harvested-' + crop);
+		if (amount > 0) {
+			if (el == null) {
+				el = document.createElement('div');
+				el.id = 'harvested-' + crop;
+				if (crop != 'Compost') {
+					var mulch = document.createElement('button');
+					mulch.innerText = 'Mulch';
+					mulch.onclick = (function(crop) {
+						return function() {
+							ws.send(JSON.stringify({Action:'Mulch', Crop:crop}));
+						};
+					})(crop);
+					el.appendChild(mulch);
+					el.appendChild(document.createTextNode(' '));
+				}
+				el.appendChild(document.createElement('strong'));
+				el.appendChild(document.createTextNode(' ' + crop));
+
+				document.getElementById('harvested').appendChild(el);
+			}
+			el.querySelector('strong').innerText = amount + '×';
+		} else {
+			if (el != null) {
+				el.parentNode.removeChild(el);
+			}
+		}
+	}
+}
+
 function planter(i, name, health, data) {
-	var p = document.createElement('div');
-	var n = document.createTextNode('(');
-	p.appendChild(n);
+	var p = document.getElementById('planter-' + i);
+	if (p == null) {
+		p = document.createElement('div');
+		p.id = 'planter-' + i;
+		var drain = document.createElement('button');
+		drain.onclick = function() {
+			ws.send(JSON.stringify({Action:'Drain', Planter:i}));
+		};
+		drain.innerText = 'D';
+		drain.title = 'Drain';
+		p.appendChild(drain);
 
-	n = document.createElement('a');
-	n.href = '/botany/use/drain/' + i;
-	n.title = 'Drain';
-	n.innerText = 'D';
-	p.appendChild(n);
+		var chainsaw = document.createElement('button');
+		chainsaw.onclick = function() {
+			ws.send(JSON.stringify({Action:'Chainsaw', Planter:i}));
+		};
+		chainsaw.innerText = 'X';
+		chainsaw.title = 'Chainsaw';
+		p.appendChild(chainsaw);
 
-	n = document.createTextNode(' ');
-	p.appendChild(n);
+		var water = document.createElement('button');
+		water.onclick = function() {
+			ws.send(JSON.stringify({Action:'Water', Planter:i}));
+		};
+		water.innerText = 'W';
+		water.title = 'Water';
+		p.appendChild(water);
 
-	n = document.createElement('a');
-	n.href = '/botany/use/chainsaw/' + i;
-	n.title = 'Chainsaw';
-	n.innerText = 'X';
-	p.appendChild(n);
+		var compost = document.createElement('button');
+		compost.onclick = function() {
+			ws.send(JSON.stringify({Action:'Compost', Planter:i}));
+		};
+		compost.innerText = 'C';
+		compost.title = 'Compost';
+		p.appendChild(compost);
 
-	n = document.createTextNode(' ');
-	p.appendChild(n);
+		var plantName = document.createElement('strong');
+		plantName.className = 'plantName';
+		p.appendChild(plantName);
 
-	n = document.createElement('a');
-	n.href = '/botany/use/water/' + i;
-	n.title = 'Water';
-	n.innerText = 'W';
-	p.appendChild(n);
+		p.appendChild(document.createTextNode(' - '));
+		p.appendChild(document.createElement('span'));
+		p.appendChild(document.createTextNode(' '));
+		p.appendChild(document.createElement('em'));
+		document.body.appendChild(p);
+	}
 
-	n = document.createTextNode(' ');
-	p.appendChild(n);
-
-	n = document.createElement('a');
-	n.href = '/botany/use/compost/' + i;
-	n.title = 'Compost';
-	n.innerText = 'C';
-	p.appendChild(n);
-
-	n = document.createTextNode(') ');
-	p.appendChild(n);
-
-	n = document.createElement('strong');
-	n.className = 'plantName';
-	n.innerText = name;
-	p.appendChild(n);
-
-	n = document.createTextNode(' - ');
-	p.appendChild(n);
+	p.querySelector('strong').innerText = name;
 
 	var solution = 0, contents = [];
 	solution += data.Water;
@@ -288,143 +228,64 @@ function planter(i, name, health, data) {
 
 	if (contents.length == 0) contents.push('Nothing');
 
-	n = document.createElement('span');
-	n.innerText = solution + ' units of ' + contents.join(', ');
-	n.className = data.Water > 200 ? 'drown-water' :
+	var solutionMeter = p.querySelector('span');
+	solutionMeter.innerText = solution + ' units of ' + contents.join(', ');
+	solutionMeter.className = data.Water > 200 ? 'drown-water' :
 		data.Water > 75 ? 'good-water' :
 		data.Water > 0 ? 'low-water' : 'no-water';
-	p.appendChild(n);
 
+	var status = p.querySelector('em');
+	status.innerText = '';
 	if (health > 50) {
 		if (data.Dehydration > 50) {
-			n = document.createTextNode(' (Unhealthy - Dehydrating)');
+			status.appendChild(document.createTextNode('(Unhealthy - Dehydrated)'));
 		} else if (data.Dehydration < -50) {
-			n = document.createTextNode(' (Unhealthy - Drowning)');
+			status.appendChild(document.createTextNode('(Unhealthy - Drowning)'));
 		} else {
-			n = document.createTextNode(' (Healthy)');
+			status.appendChild(document.createTextNode('(Healthy)'));
 		}
-		p.appendChild(n);
 	} else if (health > 0) {
 		if (data.Dehydration > 50) {
-			n = document.createTextNode(' (Unhealthy - Dehydrating)');
+			status.appendChild(document.createTextNode('(Unhealthy - Dehydrating)'));
 		} else if (data.Dehydration < -50) {
-			n = document.createTextNode(' (Unhealthy - Drowning)');
+			status.appendChild(document.createTextNode('(Unhealthy - Drowning)'));
 		} else {
-			n = document.createTextNode(' (Unhealthy)');
+			status.appendChild(document.createTextNode('(Unhealthy)'));
 		}
-		p.appendChild(n);
 	} else if (health == 0) {
-		n = document.createTextNode(' (');
-		p.appendChild(n);
+		status.appendChild(document.createTextNode('(Dead '));
 
-		n = document.createElement('a');
-		n.href = '/botany/harvest/' + i;
-		n.innerText = data.GrowthCycle == 0 && data.HarvestsLeft != 0 && data.Yield != 0 ? 'Harvestable' : 'Dead';
-		p.appendChild(n);
+		var clear = document.createElement('button');
+		clear.onclick = function() {
+			ws.send(JSON.stringify({Action:'Harvest', Planter:i}));	
+		};
+		clear.innerText = data.GrowthCycle == 0 && data.HarvestsLeft != 0 && data.Yield != 0 ? 'Harvest' : 'Clear';
+		status.appendChild(clear);
 
-		n = document.createTextNode(')');
-		p.appendChild(n);
+		status.appendChild(document.createTextNode(')'));
 	}
 
 	if (health > 0) {
 		if (data.GrowthCycle > data.Time / 2) {
-			n = document.createTextNode(' (Sprouting)');
-			p.appendChild(n);
+			status.appendChild(document.createTextNode(' (Sprouting)'));
 		} else if (data.GrowthCycle == 0) {
 			if (data.Yield != 0) {
-				n = document.createTextNode(' (');
-				p.appendChild(n);
+				status.appendChild(document.createTextNode(' (Mature '));
 
-				n = document.createElement('a');
-				n.href = '/botany/harvest/' + i;
-				n.innerText = 'Harvestable';
-				p.appendChild(n);
+				var harvest = document.createElement('button');
+				harvest.onclick = function() {
+					ws.send(JSON.stringify({Action:'Harvest', Planter:i}));	
+				};
+				harvest.innerText = 'Harvest';
+				status.appendChild(harvest);
 
-				n = document.createTextNode(')');
-				p.appendChild(n);
+				status.appendChild(document.createTextNode(')'));
 			}
 		} else {
-			n = document.createTextNode(' (Growing)');
-			p.appendChild(n);
+			status.appendChild(document.createTextNode(' (Growing)'));
 		}
 	}
-
-	document.body.appendChild(p);
 }
-
-function harvested(crop, amount) {
-	var harvested = document.getElementById('harvested');
-	if (!harvested) {
-		harvested = document.createElement('div');
-		harvested.id = 'harvested';
-		document.body.appendChild(harvested);
-	}
-
-	var h = document.createElement('div');
-	var n = document.createElement('strong');
-	n.innerText = amount + 'x';
-	h.appendChild(n);
-
-	if (crop == 'Compost') {
-		n = document.createTextNode(' Compost');
-		h.appendChild(n);
-	} else {
-		n = document.createTextNode(' ' + crop + ' (');
-		h.appendChild(n);
-
-		n = document.createElement('a');
-		n.href = '/botany/mulch/' + crop;
-		n.innerText = 'Mulch';
-		h.appendChild(n);
-
-		n = document.createTextNode(')');
-		h.appendChild(n);
-	}
-
-	harvested.appendChild(h);
-}
-
-setInterval(function() {
-	var xhr = new XMLHttpRequest();
-	xhr.open('get', '/botany/state', true);
-	xhr.onload = function() {
-		var state = JSON.parse(xhr.responseText);
-		document.body.innerHTML = '';
-		state.Planters.forEach(function(p, i) {
-			if (p.Name) {
-				planter(i, p.Name, p.Health, p);
-			} else {
-				planter(i, '', -1, p);
-			}
-		});
-		var h = [];
-		for (var crop in state.Harvested) {
-			var amount = state.Harvested[crop];
-			if (amount > 0) h.push([crop, amount]);
-		}
-		h.sort(function(a, b) {
-			if (a[0] == 'Compost')
-				return -1;
-			if (b[0] == 'Compost')
-				return 1;
-			return a[0] < b[0] ? -1 : 1;
-		});
-		h.forEach(function(h) {
-			harvested(h[0], h[1]);
-		});
-		var seeds = document.createElement('div');
-		seeds.id = 'seeds';
-		document.body.appendChild(seeds);
-		state.SeedTypes.forEach(function(s) {
-			var a = document.createElement('a');
-			a.href = '/botany/plant/' + s;
-			a.innerText = s;
-			seeds.appendChild(a);
-			seeds.appendChild(document.createTextNode(' '));
-		});
-	};
-	xhr.send();
-}, 1000);
 	</script>
 </body>
 </html>`
