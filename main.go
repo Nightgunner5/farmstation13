@@ -284,7 +284,13 @@ function planter(i, name, health, data) {
 	p.appendChild(n);
 
 	if (health > 50) {
-		n = document.createTextNode(' (Healthy)');
+		if (data.Dehydration > 50) {
+			n = document.createTextNode(' (Unhealthy - Dehydrating)');
+		} else if (data.Dehydration < -50) {
+			n = document.createTextNode(' (Unhealthy - Drowning)');
+		} else {
+			n = document.createTextNode(' (Healthy)');
+		}
 		p.appendChild(n);
 	} else if (health > 0) {
 		if (data.Dehydration > 50) {

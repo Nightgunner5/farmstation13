@@ -62,45 +62,43 @@ func (p *Planter) Tick() {
 		return
 	}
 
-	if p.Health > 0 {
-		if p.GrowthCycle != 0 {
-			growth := uint16(rand.Intn(int(10 / p.TimeScale)))
-			if p.GrowthCycle < growth {
-				p.GrowthCycle = 0
-
-				if p.Crop.Name == "Slurrypod" {
-					p.Health = 0
-					for _, p := range state.Planters {
-						p.Solution.ToxicSlurry += rand.Float32()*10 + 10
-					}
-				}
-			} else {
-				p.GrowthCycle -= growth
-			}
-		} else if p.Crop.Name == "Radweed" {
-			for _, p := range state.Planters {
-				moveTowards(&p.Dehydration, 100, 10)
-			}
-		} else if p.Crop.Name == "Lasher" {
-			for _, other := range state.Planters {
-				if other != p {
-					moveTowards(&other.Health, 0, 10)
-				}
-			}
-		} else if p.Crop.Name == "Creeper" {
-			for _, other := range state.Planters {
-				if other.Crop == nil && rand.Intn(100) == 0 {
-					other.Crop = p.Crop
-					other.Health = p.Health
-					other.Dehydration = p.Dehydration
-					other.Defaults()
-				}
-			}
-		}
-	}
-
 	if p.Health <= 0 {
 		return
+	}
+
+	if p.GrowthCycle != 0 {
+		growth := uint16(rand.Intn(int(10 / p.TimeScale)))
+		if p.GrowthCycle < growth {
+			p.GrowthCycle = 0
+
+			if p.Crop.Name == "Slurrypod" {
+				p.Health = 0
+				for _, p := range state.Planters {
+					p.Solution.ToxicSlurry += rand.Float32()*10 + 10
+				}
+			}
+		} else {
+			p.GrowthCycle -= growth
+		}
+	} else if p.Crop.Name == "Radweed" {
+		for _, p := range state.Planters {
+			moveTowards(&p.Dehydration, 100, 10)
+		}
+	} else if p.Crop.Name == "Lasher" {
+		for _, other := range state.Planters {
+			if other != p {
+				moveTowards(&other.Health, 0, 10)
+			}
+		}
+	} else if p.Crop.Name == "Creeper" {
+		for _, other := range state.Planters {
+			if other.Crop == nil && rand.Intn(100) == 0 {
+				other.Crop = p.Crop
+				other.Health = p.Health
+				other.Dehydration = p.Dehydration
+				other.Defaults()
+			}
+		}
 	}
 
 	switch p.Crop.Time {
@@ -117,11 +115,11 @@ func (p *Planter) Tick() {
 	case VerySlow:
 		moveTowards(&p.Solution.Water, 0, 1)
 	}
-	moveTowards(&p.Solution.Compost, 0, 5)
-	moveTowards(&p.Solution.ToxicSlurry, 0, 5)
-	moveTowards(&p.Solution.Mutriant, 0, 5)
-	moveTowards(&p.Solution.GroBoost, 0, 5)
-	moveTowards(&p.Solution.TopCrop, 0, 5)
+	moveTowards(&p.Solution.Compost, 0, 0.1)
+	moveTowards(&p.Solution.ToxicSlurry, 0, 0.1)
+	moveTowards(&p.Solution.Mutriant, 0, 0.1)
+	moveTowards(&p.Solution.GroBoost, 0, 0.1)
+	moveTowards(&p.Solution.TopCrop, 0, 0.1)
 	moveTowards(&p.TimeScale, 1, 0.01)
 	moveTowards(&p.YieldScale, 1, 0.01)
 
@@ -157,8 +155,8 @@ func (p *Planter) Tick() {
 		}
 
 		if p.Solution.GroBoost > 0 {
-			moveTowards(&p.TimeScale, 0.001, 0.01)
-			moveTowards(&p.Solution.Water, 0, 10) // extra gulp
+			moveTowards(&p.TimeScale, 0.001, 0.1)
+			moveTowards(&p.Solution.Water, 0, 20) // extra gulp
 		}
 
 		if p.Solution.TopCrop > 0 {
