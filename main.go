@@ -119,7 +119,7 @@ function handle(msg) {
 		seeds.id = 'seeds';
 		state.SeedTypes.forEach(function(s) {
 			var seed = document.createElement('button');
-			seed.innerText = s;
+			seed.innerHTML = s;
 			seed.onclick = function() {
 				ws.send(JSON.stringify({Action:'Plant', Crop:s}));
 			};
@@ -138,7 +138,7 @@ function handle(msg) {
 				el.id = 'harvested-' + crop;
 				if (crop != 'Compost') {
 					var mulch = document.createElement('button');
-					mulch.innerText = 'Mulch';
+					mulch.innerHTML = 'Mulch';
 					mulch.onclick = (function(crop) {
 						return function() {
 							ws.send(JSON.stringify({Action:'Mulch', Crop:crop}));
@@ -152,7 +152,7 @@ function handle(msg) {
 
 				document.getElementById('harvested').appendChild(el);
 			}
-			el.querySelector('strong').innerText = amount + '×';
+			el.querySelector('strong').innerHTML = amount + '×';
 		} else {
 			if (el != null) {
 				el.parentNode.removeChild(el);
@@ -170,7 +170,7 @@ function planter(i, name, health, data) {
 		drain.onclick = function() {
 			ws.send(JSON.stringify({Action:'Drain', Planter:i}));
 		};
-		drain.innerText = 'D';
+		drain.innerHTML = 'D';
 		drain.title = 'Drain';
 		p.appendChild(drain);
 
@@ -178,7 +178,7 @@ function planter(i, name, health, data) {
 		chainsaw.onclick = function() {
 			ws.send(JSON.stringify({Action:'Chainsaw', Planter:i}));
 		};
-		chainsaw.innerText = 'X';
+		chainsaw.innerHTML = 'X';
 		chainsaw.title = 'Chainsaw';
 		p.appendChild(chainsaw);
 
@@ -186,7 +186,7 @@ function planter(i, name, health, data) {
 		water.onclick = function() {
 			ws.send(JSON.stringify({Action:'Water', Planter:i}));
 		};
-		water.innerText = 'W';
+		water.innerHTML = 'W';
 		water.title = 'Water';
 		p.appendChild(water);
 
@@ -194,7 +194,7 @@ function planter(i, name, health, data) {
 		compost.onclick = function() {
 			ws.send(JSON.stringify({Action:'Compost', Planter:i}));
 		};
-		compost.innerText = 'C';
+		compost.innerHTML = 'C';
 		compost.title = 'Compost';
 		p.appendChild(compost);
 
@@ -209,7 +209,7 @@ function planter(i, name, health, data) {
 		document.body.appendChild(p);
 	}
 
-	p.querySelector('strong').innerText = name;
+	p.querySelector('strong').innerHTML = name;
 
 	var solution = 0, contents = [];
 	solution += data.Water;
@@ -229,13 +229,13 @@ function planter(i, name, health, data) {
 	if (contents.length == 0) contents.push('Nothing');
 
 	var solutionMeter = p.querySelector('span');
-	solutionMeter.innerText = solution + ' units of ' + contents.join(', ');
+	solutionMeter.innerHTML = solution + ' units of ' + contents.join(', ');
 	solutionMeter.className = data.Water > 200 ? 'drown-water' :
 		data.Water > 75 ? 'good-water' :
 		data.Water > 0 ? 'low-water' : 'no-water';
 
 	var status = p.querySelector('em');
-	status.innerText = '';
+	status.innerHTML = '';
 	if (health > 50) {
 		if (data.Dehydration > 50) {
 			status.appendChild(document.createTextNode('(Unhealthy - Dehydrated)'));
@@ -259,7 +259,7 @@ function planter(i, name, health, data) {
 		clear.onclick = function() {
 			ws.send(JSON.stringify({Action:'Harvest', Planter:i}));	
 		};
-		clear.innerText = data.GrowthCycle == 0 && data.HarvestsLeft != 0 && data.Yield != 0 ? 'Harvest' : 'Clear';
+		clear.innerHTML = data.GrowthCycle == 0 && data.HarvestsLeft != 0 && data.Yield != 0 ? 'Harvest' : 'Clear';
 		status.appendChild(clear);
 
 		status.appendChild(document.createTextNode(')'));
@@ -276,7 +276,7 @@ function planter(i, name, health, data) {
 				harvest.onclick = function() {
 					ws.send(JSON.stringify({Action:'Harvest', Planter:i}));	
 				};
-				harvest.innerText = 'Harvest';
+				harvest.innerHTML = 'Harvest';
 				status.appendChild(harvest);
 
 				status.appendChild(document.createTextNode(')'));
