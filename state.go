@@ -18,7 +18,6 @@ var (
 	}
 
 	stateNotify = sync.NewCond(new(sync.Mutex))
-	connClose   sync.Mutex
 )
 
 func init() {
@@ -67,11 +66,6 @@ func HandleSocket(ws *websocket.Conn) {
 			state.RUnlock()
 
 			if err != nil {
-				log.Println(ws.RemoteAddr(), err)
-
-				connClose.Lock()
-				defer connClose.Unlock()
-				ws.Close()
 				return
 			}
 		}
@@ -90,8 +84,6 @@ func HandleSocket(ws *websocket.Conn) {
 		if err != nil {
 			log.Println(ws.RemoteAddr(), err)
 
-			connClose.Lock()
-			defer connClose.Unlock()
 			ws.Close()
 			return
 		}

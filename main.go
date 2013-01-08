@@ -28,6 +28,9 @@ const Interface = `<!DOCTYPE html>
 <head>
 	<title>Farm Station 13</title>
 	<style>
+body {
+	padding-bottom: 100px;
+}
 #harvested {
 	position: absolute;
 	right: 8px;
@@ -35,9 +38,8 @@ const Interface = `<!DOCTYPE html>
 }
 #seeds {
 	position: fixed;
-	right: 8px;
-	bottom: 8px;
-	max-width: 300px;
+	bottom: 0;
+	background-color: rgba(255, 255, 255, 0.5);
 }
 button {
 	border: 1px solid #777;
@@ -51,18 +53,19 @@ button:active {
 }
 [id^="planter-"]>button:first-child {
 	border-radius: 5px 0 0 5px;
-	margin: 0;
+	margin-right: 0;
 }
 [id^="planter-"]>button:first-child+button,
 [id^="planter-"]>button:first-child+button+button {
 	border-radius: 0;
 	border-left: 0;
-	margin: 0;
+	margin-left: 0;
+	margin-right: 0;
 }
 [id^="planter-"]>button:first-child+button+button+button {
 	border-radius: 0 5px 5px 0;
 	border-left: 0;
-	margin: 0 5px 0 0;
+	margin-left: 0;
 }
 .plantName {
 	display: inline-block;
@@ -121,7 +124,6 @@ function handle(msg) {
 				ws.send(JSON.stringify({Action:'Plant', Crop:s}));
 			};
 			seeds.appendChild(seed);
-			seeds.appendChild(document.createTextNode(' '));
 		});
 		document.body.appendChild(seeds);
 	}
