@@ -167,6 +167,16 @@ var Crops = []Crop{
 		Yield:    4,
 		Harvests: 50,
 		Time:     VerySlow,
+
+		Mutations: []Crop{
+			{
+				Name:     "Pink Lemon",
+				Type:     Fruit,
+				Yield:    5,
+				Harvests: 40,
+				Time:     Slow,
+			},
+		},
 	},
 	{
 		Name:     "Lettuce",
@@ -248,8 +258,18 @@ var Crops = []Crop{
 		Name:     "Pumpkin",
 		Type:     Vegetable,
 		Yield:    2,
-		Harvests: 1,
+		Harvests: 10,
 		Time:     Slow,
+
+		Mutations: []Crop{
+			{
+				Name:     "Great Pumpkin",
+				Type:     Vegetable,
+				Yield:    1,
+				Harvests: 1,
+				Time:     VerySlow,
+			},
+		},
 	},
 	{
 		Name:     "Radweed",
@@ -281,6 +301,16 @@ var Crops = []Crop{
 		Yield:    4,
 		Harvests: 1, // social commentary lol
 		Time:     Average,
+
+		Mutations: []Crop{
+			{
+				Name:     "Soylent Tofu",
+				Type:     Ingredient,
+				Yield:    5,
+				Harvests: 20,
+				Time:     Slow,
+			},
+		},
 	},
 	{
 		Name:     "Space Fungus",
@@ -288,6 +318,23 @@ var Crops = []Crop{
 		Yield:    3,
 		Harvests: infinite,
 		Time:     Slow,
+
+		Mutations: []Crop{
+			{
+				Name:     "Space Shroom",
+				Type:     Weed,
+				Yield:    2,
+				Harvests: infinite,
+				Time:     VerySlow,
+			},
+			{
+				Name:     "Space Mold",
+				Type:     Weed,
+				Yield:    4,
+				Harvests: infinite,
+				Time:     VerySlow,
+			},
+		},
 	},
 	{
 		Name:     "Space Grass",
@@ -302,7 +349,7 @@ var Crops = []Crop{
 				Type:     Weed,
 				Yield:    1,
 				Harvests: infinite,
-				Time:     Slow,
+				Time:     Fast,
 			},
 		},
 	},
@@ -312,6 +359,16 @@ var Crops = []Crop{
 		Yield:    6,
 		Harvests: 20,
 		Time:     Fast,
+
+		Mutations: []Crop{
+			{
+				Name:     "High Fructose Sugar-Like Sweetener Substance",
+				Type:     Ingredient,
+				Yield:    6,
+				Harvests: 40,
+				Time:     Average,
+			},
+		},
 	},
 	{
 		Name:     "Synthmeat",
