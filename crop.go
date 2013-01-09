@@ -375,7 +375,7 @@ var Crops = []Crop{
 		Type:     Ingredient,
 		Yield:    4,
 		Harvests: 40,
-		Time:     Fast,
+		Time:     Average,
 
 		Mutations: []Crop{
 			{
@@ -391,6 +391,13 @@ var Crops = []Crop{
 				Yield:    1,
 				Harvests: infinite,
 				Time:     VerySlow,
+			},
+			{
+				Name:     "Synthbacon",
+				Type:     Ingredient,
+				Yield:    30,
+				Harvests: 150,
+				Time:     Slow,
 			},
 		},
 	},
