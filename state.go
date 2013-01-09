@@ -2,9 +2,11 @@ package main
 
 import (
 	"code.google.com/p/go.net/websocket"
+	"encoding/json"
 	"log"
 	"math/rand"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 )
@@ -20,9 +22,26 @@ var (
 	stateNotify = sync.NewCond(new(sync.Mutex))
 )
 
+func saveHarvested() {
+	f, err := os.Create("farmstation13.json")
+	if err != nil {
+		log.Println("saving harvested:", err)
+		return
+	}
+	defer f.Close()
+	json.NewEncoder(f).Encode(&state.Harvested)
+}
+
 func init() {
-	state.Harvested = make(map[string]uint)
-	state.Harvested["Compost"] = 50
+	f, err := os.Open("farmstation13.json")
+	if err != nil {
+		state.Harvested = make(map[string]uint)
+		state.Harvested["Compost"] = 50
+		saveHarvested()
+	} else {
+		defer f.Close()
+		json.NewDecoder(f).Decode(&state.Harvested)
+	}
 	for i := 0; i < 20; i++ {
 		p := new(Planter)
 		p.Defaults()
@@ -102,6 +121,7 @@ func HandleSocket(ws *websocket.Conn) {
 				} else {
 					log.Println(addr, "harvested", amount, crop.Name)
 					state.Harvested[crop.Name] += uint(amount)
+					saveHarvested()
 				}
 			}
 			state.Unlock()
@@ -204,6 +224,7 @@ func HandleSocket(ws *websocket.Conn) {
 				log.Println(addr, "mulched", amount, packet.Crop)
 				state.Harvested[packet.Crop] -= amount
 				state.Harvested["Compost"] += amount
+				saveHarvested()
 			}
 			state.Unlock()
 
